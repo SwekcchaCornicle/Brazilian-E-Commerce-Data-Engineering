@@ -1,61 +1,86 @@
--- Run in Athena after the Glue ETL job has successfully written Parquet files.
--- Replace the bucket placeholder with terraform output curated_bucket_name.
--- This table is created with SQL; no Glue Crawler is required.
+-- Run after the Glue ETL job writes Parquet to the curated S3 bucket.
+-- Replace <CURATED_BUCKET> and <REPORTS_BUCKET> with Terraform outputs.
+-- No Glue Crawler is required: the tables below are declared with SQL.
 
 CREATE DATABASE IF NOT EXISTS dq_platform_analytics;
 
+-- Five Olist customer attributes plus ETL processing timestamp.
 CREATE EXTERNAL TABLE IF NOT EXISTS dq_platform_analytics.customer_curated (
     customer_id STRING,
+    customer_unique_id STRING,
+    customer_zip_code_prefix STRING,
     customer_city STRING,
     customer_state STRING,
     processed_at TIMESTAMP
 )
-PARTITIONED BY (
-    processing_date STRING
-)
+PARTITIONED BY (processing_date STRING)
 STORED AS PARQUET
 LOCATION 's3://<CURATED_BUCKET>/customer/'
 TBLPROPERTIES (
     'projection.enabled' = 'true',
     'projection.processing_date.type' = 'date',
     'projection.processing_date.format' = 'yyyy-MM-dd',
-    'projection.processing_date.range' = '2026-01-01,NOW',
+    'projection.processing_date.range' = '2020-01-01,NOW',
     'projection.processing_date.interval' = '1',
     'projection.processing_date.interval.unit' = 'DAYS',
     'storage.location.template' = 's3://<CURATED_BUCKET>/customer/processing_date=${processing_date}/'
 );
 
--- 1. Basic volume and distinct-customer profile.
-SELECT
-    processing_date,
-    COUNT(*) AS customer_rows,
-    COUNT(DISTINCT customer_id) AS distinct_customers
-FROM dq_platform_analytics.customer_curated
-GROUP BY processing_date
-ORDER BY processing_date DESC;
+-- Lambda validation reports are persisted as JSON in the reports bucket.
+CREATE EXTERNAL TABLE IF NOT EXISTS dq_platform_analytics.ingestion_validation_reports (
+    created_at STRING,
+    source STRING,
+    total_records INT,
+    valid_records INT,
+    invalid_records INT,
+    validated_output STRING,
+    quarantine_output STRING,
+    validation_errors ARRAY<STRUCT<record_index:INT, errors:ARRAY<STRING>>>
+)
+ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
+STORED AS TEXTFILE
+LOCATION 's3://<REPORTS_BUCKET>/ingestion-reports/';
 
--- 2. Customers by state.
+-- Query 1: expected one valid CUST-1001 row for the two-record demo fixture.
+SELECT
+    customer_id,
+    customer_unique_id,
+    customer_zip_code_prefix,
+    customer_city,
+    customer_state,
+    processing_date
+FROM dq_platform_analytics.customer_curated
+WHERE customer_id = 'CUST-1001';
+
+-- Query 2: count curated customer rows by state.
 SELECT
     customer_state,
     COUNT(*) AS customer_count
 FROM dq_platform_analytics.customer_curated
 GROUP BY customer_state
-ORDER BY customer_count DESC
+ORDER BY customer_count DESC;
+
+-- Query 3: aggregate Lambda validation results.
+SELECT
+    SUM(total_records) AS total_records,
+    SUM(valid_records) AS valid_records,
+    SUM(invalid_records) AS invalid_records
+FROM dq_platform_analytics.ingestion_validation_reports;
+
+-- Query 4: show source-level validation reports and output paths.
+SELECT
+    created_at,
+    source,
+    total_records,
+    valid_records,
+    invalid_records,
+    validated_output,
+    quarantine_output
+FROM dq_platform_analytics.ingestion_validation_reports
+ORDER BY created_at DESC
 LIMIT 20;
 
--- 3. City-level completeness and profile.
-SELECT
-    customer_city,
-    customer_state,
-    COUNT(*) AS customer_count
-FROM dq_platform_analytics.customer_curated
-WHERE customer_city IS NOT NULL
-  AND TRIM(customer_city) <> ''
-GROUP BY customer_city, customer_state
-ORDER BY customer_count DESC
-LIMIT 25;
-
--- 4. Detect unexpected blank/null values in curated output.
+-- Query 5: verify no required-field violations remain in curated output.
 SELECT
     COUNT_IF(customer_id IS NULL OR TRIM(customer_id) = '') AS bad_customer_ids,
     COUNT_IF(customer_city IS NULL OR TRIM(customer_city) = '') AS bad_cities,
