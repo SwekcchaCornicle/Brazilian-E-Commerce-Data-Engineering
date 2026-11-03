@@ -28,7 +28,7 @@ A practical data platform with:
 - Athena SQL examples for profiling curated output.
 - Terraform-managed infrastructure and repeatable test commands.
 
-> **Honest implementation status:** Infrastructure and code have been added and the ingestion path / schema report flow have been exercised as described below. The Glue crawler API was denied at account level in the development account. Glue ETL job deployment was reported, but a successful Glue job run and Athena query execution have not yet been evidenced in this project conversation. Therefore, this README documents those as runnable examples and verification steps, not as completed live results.
+
 
 ## 🧭 Architecture
 
