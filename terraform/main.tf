@@ -11,6 +11,7 @@ locals {
     validated  = "validated-data"
     quarantine = "invalid-data"
     reports    = "quality-reports"
+    curated    = "curated-data"
   }
 }
 

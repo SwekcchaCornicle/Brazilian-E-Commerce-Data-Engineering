@@ -1,12 +1,3 @@
-output "s3_bucket_names" {
-  description = "All project S3 buckets"
-
-  value = {
-    for name, bucket in module.s3_buckets :
-    name => bucket.bucket_name
-  }
-}
-
 output "ingestion_queue_url" {
   value = aws_sqs_queue.ingestion_queue.url
 }
@@ -21,4 +12,24 @@ output "ingestion_dlq_url" {
 
 output "eventbridge_rule_arn" {
   value = aws_cloudwatch_event_rule.s3_object_created.arn
+}
+
+output "glue_database_name" {
+  value = aws_glue_catalog_database.dq_database.name
+}
+
+output "glue_crawler_role_arn" {
+  value = aws_iam_role.glue_crawler_role.arn
+}
+
+output "glue_etl_job_name" {
+  value = aws_glue_job.customer_etl.name
+}
+
+output "glue_etl_role_arn" {
+  value = aws_iam_role.glue_etl_role.arn
+}
+
+output "curated_bucket_name" {
+  value = module.s3_buckets["curated"].bucket_name
 }

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "customer-v2",
+  "title": "Brazilian E-Commerce Customer",
+  "description": "Version 2 customer data contract",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "customer_city": {
+      "type": "string",
+      "minLength": 1
+    },
+    "customer_state": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 2
+    },
+    "customer_segment": {
+      "type": "string",
+      "enum": ["Consumer", "Corporate", "Home Office"]
+    }
+  },
+  "required": [
+    "customer_id",
+    "customer_city",
+    "customer_state"
+  ],
+  "additionalProperties": true
+}

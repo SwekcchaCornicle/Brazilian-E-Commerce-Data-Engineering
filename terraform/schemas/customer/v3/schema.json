@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "customer-v3",
+  "title": "Brazilian E-Commerce Customer",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string"
+    },
+    "customer_state": {
+      "type": "string"
+    },
+    "customer_segment": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "customer_id",
+    "customer_state",
+    "customer_segment"
+  ],
+  "additionalProperties": true
+}
