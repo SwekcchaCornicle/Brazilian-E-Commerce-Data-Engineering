@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
+<title id="title">Athena SQL result grid preview</title>
+<desc id="desc">Illustrative Athena result grid layout for a customer-state count query. It contains no fabricated data rows; run the SQL to populate real results.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101b31"/><stop offset="1" stop-color="#1b3554"/></linearGradient>
+ <style>
+ .h{font:700 27px Arial;fill:#fff}.sub{font:14px Arial;fill:#b7cbe3}.panel{fill:#f8fafc}.dark{fill:#17243a}.mono{font:14px Consolas,monospace;fill:#d9e7f7}.head{font:700 15px Arial;fill:#25364e}.muted{font:14px Arial;fill:#66758a}.warn{font:700 14px Arial;fill:#7c5011}
+ </style>
+</defs>
+<rect width="1200" height="600" rx="24" fill="url(#bg)"/>
+<text x="55" y="62" class="h">Amazon Athena · query result layout</text>
+<text x="55" y="92" class="sub">Illustrative preview of the SQL example in athena/customer_analytics.sql</text>
+<rect x="55" y="125" width="1090" height="190" rx="14" class="dark"/>
+<text x="85" y="165" class="mono">SELECT customer_state, COUNT(*) AS customer_count</text>
+<text x="85" y="198" class="mono">FROM dq_platform_analytics.customer_curated</text>
+<text x="85" y="231" class="mono">GROUP BY customer_state</text>
+<text x="85" y="264" class="mono">ORDER BY customer_count DESC LIMIT 20;</text>
+<rect x="55" y="345" width="1090" height="195" rx="14" class="panel"/>
+<rect x="55" y="345" width="1090" height="47" rx="14" fill="#e8eef5"/>
+<text x="90" y="375" class="head">customer_state</text>
+<text x="580" y="375" class="head">customer_count</text>
+<path d="M55 392 H1145" stroke="#d9e1ea"/>
+<text x="600" y="445" text-anchor="middle" class="muted">No live result rows embedded yet</text>
+<text x="600" y="475" text-anchor="middle" class="muted">Run the Athena query after the Glue job writes curated Parquet.</text>
+<rect x="395" y="505" width="410" height="26" rx="13" fill="#ffedc6"/>
+<text x="600" y="523" text-anchor="middle" class="warn">Preview only · not a captured AWS query result</text>
+</svg>
