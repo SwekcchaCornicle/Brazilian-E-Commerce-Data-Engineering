@@ -1,56 +1,154 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="620" viewBox="0 0 1400 620" role="img" aria-labelledby="title desc">
-<title id="title">Direct S3 Glue ETL to Athena workflow</title><desc id="desc">Validated JSON input, Glue Spark transformations, Parquet output, explicit Athena table DDL and SQL analytics.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1450" viewBox="0 0 1900 1450" role="img" aria-labelledby="title desc">
+<title id="title">Five-field Brazilian customer record end-to-end AWS data quality pipeline</title>
+<desc id="desc">A two-record JSON sample enters raw S3, Lambda validates required fields and splits one valid record to validated S3 and one invalid record to quarantine, CloudWatch logs validation counts, Glue reads only validated JSON and trims fields before Parquet output, and Athena queries return one Sao Paulo SP sample row.</desc>
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111d34"/><stop offset="1" stop-color="#1c3655"/></linearGradient>
- <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#93e9bb"/><stop offset="1" stop-color="#36a878"/></linearGradient>
- <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c1a8ff"/><stop offset="1" stop-color="#805bd2"/></linearGradient>
- <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#91dbff"/><stop offset="1" stop-color="#368ec5"/></linearGradient>
- <marker id="arr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0 0 L0 6 L8 3 z" fill="#9fb5d1"/></marker>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101c32"/><stop offset="1" stop-color="#1c3555"/></linearGradient>
+ <linearGradient id="green" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#93ebbc"/><stop offset="1" stop-color="#2e9f73"/></linearGradient>
+ <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c6aaff"/><stop offset="1" stop-color="#7851c8"/></linearGradient>
+ <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd18a"/><stop offset="1" stop-color="#e98c2b"/></linearGradient>
+ <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#92dfff"/><stop offset="1" stop-color="#398ec6"/></linearGradient>
+ <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffaaaa"/><stop offset="1" stop-color="#ca5a68"/></linearGradient>
+ <marker id="arr" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto"><path d="M0 0 L0 6 L8 3 z" fill="#a9bfdc"/></marker>
  <style>
- .h{font:700 30px Arial;fill:#fff}.sub{font:15px Arial;fill:#b8cbe3}.t{font:700 18px Arial;fill:#fff}.s{font:13px Arial;fill:#d1deee}.k{font:700 13px Arial;fill:#15243b}.arrow{stroke:#9fb5d1;stroke-width:2.5;fill:none;marker-end:url(#arr)}.step{fill:#243d5e;stroke:#58789c;stroke-width:1.5}
+ .title{font:700 38px Arial,sans-serif;fill:#fff}.subtitle{font:16px Arial,sans-serif;fill:#b8cbe4}
+ .section{font:700 19px Arial,sans-serif;fill:#dbe8f7;letter-spacing:1.2px}
+ .h{font:700 20px Arial,sans-serif;fill:#fff}.s{font:15px Arial,sans-serif;fill:#d6e3f2}
+ .small{font:13px Arial,sans-serif;fill:#b8cbe0}.mono{font:14px Consolas,monospace;fill:#e6effa}
+ .muted{font:13px Arial,sans-serif;fill:#9fb4cf}.tag{font:700 13px Arial,sans-serif;fill:#10223a}
+ .panel{fill:#203a5c;stroke:#52749a;stroke-width:1.6}.inner{fill:#162a46;stroke:#425f82;stroke-width:1.2}
+ .line{stroke:#a9bfdc;stroke-width:2.8;fill:none;marker-end:url(#arr)}
+ .ok{font:700 15px Arial,sans-serif;fill:#8fe2b5}.bad{font:700 15px Arial,sans-serif;fill:#ffaaaa}
  </style>
 </defs>
-<rect width="1400" height="620" rx="26" fill="url(#bg)"/>
-<text x="60" y="65" class="h">From validated JSON to query-ready Parquet</text>
-<text x="60" y="95" class="sub">Crawler-independent pattern • Glue reads direct S3 paths • Athena table defined with SQL</text>
+<rect width="1900" height="1450" rx="30" fill="url(#bg)"/>
+<text x="65" y="75" class="title">From a 5-field raw customer JSON to Athena query results</text>
+<text x="65" y="112" class="subtitle">One small example • two records in • Lambda splits valid and invalid • Glue cleans only validated records • Athena queries Parquet</text>
 
-<g>
- <rect x="55" y="150" width="245" height="190" rx="17" class="step"/><rect x="55" y="150" width="245" height="9" rx="4" fill="url(#g)"/>
- <text x="177" y="195" text-anchor="middle" class="t">01 · Validated S3</text>
- <text x="177" y="235" text-anchor="middle" class="s">processed/*.json</text>
- <text x="177" y="264" text-anchor="middle" class="s">Required fields present</text>
- <text x="177" y="293" text-anchor="middle" class="s">JSON array / object records</text>
+<!-- top: source input -->
+<rect x="55" y="155" width="760" height="390" rx="20" class="panel"/>
+<rect x="55" y="155" width="760" height="10" rx="5" fill="url(#orange)"/>
+<text x="88" y="202" class="section">01 / SAMPLE INPUT JSON · FIVE OLIST CUSTOMER FIELDS</text>
+<text x="90" y="245" class="small">Demo fixture: first record is valid; second has a blank customer_city.</text>
+<rect x="85" y="270" width="700" height="245" rx="13" class="inner"/>
+<text x="110" y="305" class="mono">[</text>
+<text x="135" y="334" class="mono">{ "customer_id": "  CUST-1001  ",</text>
+<text x="160" y="362" class="mono">"customer_unique_id": "UNQ-9001",</text>
+<text x="160" y="390" class="mono">"customer_zip_code_prefix": "01001",</text>
+<text x="160" y="418" class="mono">"customer_city": "  sao paulo  ",</text>
+<text x="160" y="446" class="mono">"customer_state": " sp " },</text>
+<text x="135" y="475" class="mono">{ "customer_id": "CUST-1002", ... "customer_city": "" }</text>
+<text x="110" y="500" class="mono">]</text>
 
- <rect x="365" y="150" width="300" height="190" rx="17" class="step"/><rect x="365" y="150" width="300" height="9" rx="4" fill="url(#p)"/>
- <text x="515" y="195" text-anchor="middle" class="t">02 · AWS Glue Spark</text>
- <text x="515" y="235" text-anchor="middle" class="s">Read JSON directly from S3</text>
- <text x="515" y="264" text-anchor="middle" class="s">Trim ID and city fields</text>
- <text x="515" y="293" text-anchor="middle" class="s">Uppercase state • count rejects</text>
+<!-- Raw and event route -->
+<rect x="860" y="235" width="240" height="180" rx="18" class="panel"/>
+<rect x="860" y="235" width="240" height="9" rx="4" fill="url(#orange)"/>
+<text x="980" y="285" text-anchor="middle" class="h">02 / Raw S3</text>
+<text x="980" y="325" text-anchor="middle" class="s">incoming/customers</text>
+<text x="980" y="355" text-anchor="middle" class="s">customers_5_fields.json</text>
+<text x="980" y="385" text-anchor="middle" class="small">Original JSON unchanged</text>
+<path d="M815 350 H850" class="line"/>
 
- <rect x="730" y="150" width="245" height="190" rx="17" class="step"/><rect x="730" y="150" width="245" height="9" rx="4" fill="url(#g)"/>
- <text x="852" y="195" text-anchor="middle" class="t">03 · Curated S3</text>
- <text x="852" y="235" text-anchor="middle" class="s">customer/</text>
- <text x="852" y="264" text-anchor="middle" class="s">Parquet format</text>
- <text x="852" y="293" text-anchor="middle" class="s">processing_date=YYYY-MM-DD</text>
+<rect x="1150" y="165" width="680" height="380" rx="20" class="panel"/>
+<rect x="1150" y="165" width="680" height="10" rx="5" fill="url(#purple)"/>
+<text x="1185" y="210" class="section">03 / EVENT-DRIVEN LAMBDA VALIDATION</text>
+<rect x="1190" y="245" width="185" height="105" rx="14" class="inner"/>
+<text x="1282" y="285" text-anchor="middle" class="h">EventBridge</text>
+<text x="1282" y="315" text-anchor="middle" class="small">S3 Object Created</text>
+<rect x="1410" y="245" width="160" height="105" rx="14" class="inner"/>
+<text x="1490" y="285" text-anchor="middle" class="h">SQS</text>
+<text x="1490" y="315" text-anchor="middle" class="small">Ingestion queue</text>
+<rect x="1605" y="245" width="185" height="105" rx="14" class="inner"/>
+<text x="1697" y="285" text-anchor="middle" class="h">Lambda</text>
+<text x="1697" y="315" text-anchor="middle" class="small">Python validator</text>
+<path d="M1100 300 H1180" class="line"/>
+<path d="M1375 297 H1400" class="line"/>
+<path d="M1570 297 H1595" class="line"/>
+<text x="1188" y="405" class="small">Required fields checked:</text>
+<text x="1188" y="438" class="mono">customer_id • customer_city • customer_state</text>
+<text x="1188" y="480" class="small">customer_unique_id and customer_zip_code_prefix are preserved as additional fields.</text>
 
- <rect x="1040" y="150" width="305" height="190" rx="17" class="step"/><rect x="1040" y="150" width="305" height="9" rx="4" fill="url(#b)"/>
- <text x="1192" y="195" text-anchor="middle" class="t">04 · Amazon Athena</text>
- <text x="1192" y="235" text-anchor="middle" class="s">Explicit external table DDL</text>
- <text x="1192" y="264" text-anchor="middle" class="s">Partition projection</text>
- <text x="1192" y="293" text-anchor="middle" class="s">SQL profile and quality checks</text>
- <path d="M300 245 H355" class="arrow"/><path d="M665 245 H720" class="arrow"/><path d="M975 245 H1030" class="arrow"/>
-</g>
+<!-- branches -->
+<path d="M1697 350 V585 H350 V620" class="line"/>
+<path d="M1697 350 V585 H940 V620" class="line"/>
+<path d="M1697 350 V585 H1515 V620" class="line"/>
 
-<rect x="55" y="390" width="610" height="165" rx="17" fill="#1c304e" stroke="#4d7195"/>
-<text x="85" y="430" class="t">Transformation contract</text>
-<text x="85" y="465" class="s">customer_id = TRIM(CAST(customer_id AS STRING))</text>
-<text x="85" y="493" class="s">customer_city = TRIM(CAST(customer_city AS STRING))</text>
-<text x="85" y="521" class="s">customer_state = UPPER(TRIM(CAST(customer_state AS STRING)))</text>
+<rect x="55" y="620" width="560" height="310" rx="20" class="panel"/>
+<rect x="55" y="620" width="560" height="10" rx="5" fill="url(#green)"/>
+<text x="88" y="670" class="section">04A / VALIDATED S3</text>
+<text x="88" y="710" class="ok">1 record passed all required-field checks</text>
+<text x="88" y="750" class="small">processed/&lt;timestamp&gt;/customers_5_fields.json.json</text>
+<rect x="85" y="775" width="500" height="125" rx="12" class="inner"/>
+<text x="105" y="810" class="mono">{ customer_id: "  CUST-1001  ",</text>
+<text x="105" y="838" class="mono">  customer_city: "  sao paulo  ",</text>
+<text x="105" y="866" class="mono">  customer_state: " sp ", ... }</text>
+<text x="88" y="918" class="muted">All 5 input fields are preserved at this stage.</text>
 
-<rect x="705" y="390" width="640" height="165" rx="17" fill="#1c304e" stroke="#4d7195"/>
-<text x="735" y="430" class="t">Example Athena analytics</text>
-<text x="735" y="465" class="s">SELECT customer_state, COUNT(*) AS customer_count</text>
-<text x="735" y="493" class="s">FROM dq_platform_analytics.customer_curated</text>
-<text x="735" y="521" class="s">GROUP BY customer_state ORDER BY customer_count DESC;</text>
-<text x="60" y="590" class="sub">Runtime output is environment-specific; capture actual Glue JobRunState and Athena result grid after execution.</text>
+<rect x="660" y="620" width="560" height="310" rx="20" class="panel"/>
+<rect x="660" y="620" width="560" height="10" rx="5" fill="url(#red)"/>
+<text x="693" y="670" class="section">04B / QUARANTINE S3</text>
+<text x="693" y="710" class="bad">1 record rejected by Lambda</text>
+<text x="693" y="750" class="small">quarantine/&lt;timestamp&gt;/customers_5_fields.json.json</text>
+<rect x="690" y="775" width="500" height="125" rx="12" class="inner"/>
+<text x="710" y="810" class="mono">record_index: 1</text>
+<text x="710" y="838" class="mono">record.customer_city: ""</text>
+<text x="710" y="866" class="mono">errors: ["Empty required field:</text>
+<text x="710" y="890" class="mono">         customer_city"]</text>
+<text x="693" y="918" class="muted">Original rejected record + validation error details.</text>
+
+<rect x="1265" y="620" width="565" height="310" rx="20" class="panel"/>
+<rect x="1265" y="620" width="565" height="10" rx="5" fill="url(#blue)"/>
+<text x="1298" y="670" class="section">04C / VALIDATION SUMMARY</text>
+<text x="1298" y="710" class="h">CloudWatch log summary</text>
+<rect x="1295" y="745" width="505" height="155" rx="12" class="inner"/>
+<text x="1320" y="782" class="mono">{</text>
+<text x="1345" y="810" class="mono">"total_records": 2,</text>
+<text x="1345" y="838" class="mono">"valid_records": 1,</text>
+<text x="1345" y="866" class="mono">"invalid_records": 1</text>
+<text x="1320" y="892" class="mono">}</text>
+<text x="1298" y="918" class="muted">Summary is printed to CloudWatch; not a separate S3 report.</text>
+
+<!-- Glue path -->
+<text x="65" y="990" class="section">05 / GLUE READS THE VALIDATED BRANCH ONLY</text>
+<rect x="55" y="1020" width="300" height="175" rx="18" class="panel"/>
+<rect x="55" y="1020" width="300" height="9" rx="4" fill="url(#green)"/>
+<text x="205" y="1065" text-anchor="middle" class="h">Validated JSON</text>
+<text x="205" y="1105" text-anchor="middle" class="s">processed/ prefix</text>
+<text x="205" y="1135" text-anchor="middle" class="small">Only valid record(s)</text>
+<text x="205" y="1165" text-anchor="middle" class="small">Quarantine is not read</text>
+
+<rect x="415" y="1020" width="560" height="175" rx="18" class="panel"/>
+<rect x="415" y="1020" width="560" height="9" rx="4" fill="url(#purple)"/>
+<text x="695" y="1065" text-anchor="middle" class="h">06 / AWS Glue Spark ETL</text>
+<text x="450" y="1105" class="mono">TRIM(customer_id)   → "CUST-1001"</text>
+<text x="450" y="1135" class="mono">TRIM(customer_city) → "sao paulo"</text>
+<text x="450" y="1165" class="mono">UPPER(TRIM(state))  → "SP"</text>
+<text x="450" y="1188" class="muted">Keeps customer_unique_id + zip prefix; adds timestamps.</text>
+
+<rect x="1035" y="1020" width="300" height="175" rx="18" class="panel"/>
+<rect x="1035" y="1020" width="300" height="9" rx="4" fill="url(#green)"/>
+<text x="1185" y="1065" text-anchor="middle" class="h">07 / Curated S3</text>
+<text x="1185" y="1105" text-anchor="middle" class="s">customer/</text>
+<text x="1185" y="1135" text-anchor="middle" class="s">Parquet format</text>
+<text x="1185" y="1165" text-anchor="middle" class="small">processing_date=YYYY-MM-DD</text>
+
+<rect x="1395" y="1020" width="435" height="175" rx="18" class="panel"/>
+<rect x="1395" y="1020" width="435" height="9" rx="4" fill="url(#blue)"/>
+<text x="1612" y="1065" text-anchor="middle" class="h">08 / Amazon Athena</text>
+<text x="1430" y="1105" class="mono">SELECT customer_state, COUNT(*)</text>
+<text x="1430" y="1135" class="mono">FROM customer_curated</text>
+<text x="1430" y="1165" class="mono">GROUP BY customer_state;</text>
+<path d="M615 1085 H405" class="line"/>
+<path d="M975 1085 H1025" class="line"/>
+<path d="M1335 1085 H1385" class="line"/>
+
+<!-- query output -->
+<rect x="415" y="1240" width="1415" height="145" rx="18" class="panel"/>
+<text x="450" y="1280" class="section">09 / EXPECTED ATHENA RESULT FOR THIS TWO-RECORD DEMO</text>
+<text x="450" y="1325" class="small">customer_state</text><text x="850" y="1325" class="small">customer_count</text>
+<path d="M445 1340 H1785" stroke="#55779a"/>
+<text x="450" y="1370" class="ok">SP</text><text x="850" y="1370" class="ok">1</text>
+<text x="65" y="1290" class="small">The invalid city record never reaches curated data.</text>
+<text x="65" y="1320" class="small">Illustrative result from the sample fixture;</text>
+<text x="65" y="1350" class="small">actual AWS query output must be captured after job run.</text>
+<text x="65" y="1410" class="muted">Note: the existing Lambda output path appends .json to the source filename, so a source ending in .json produces a .json.json output key.</text>
 </svg>
