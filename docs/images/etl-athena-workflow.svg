@@ -76,7 +76,7 @@
 <rect x="55" y="620" width="560" height="10" rx="5" fill="url(#green)"/>
 <text x="88" y="670" class="section">04A / VALIDATED S3</text>
 <text x="88" y="710" class="ok">1 record passed all required-field checks</text>
-<text x="88" y="750" class="small">processed/&lt;timestamp&gt;/customers_5_fields.json.json</text>
+<text x="88" y="750" class="small">processed/&lt;timestamp&gt;/customers_5_fields_e2e.json</text>
 <rect x="85" y="775" width="500" height="125" rx="12" class="inner"/>
 <text x="105" y="810" class="mono">{ customer_id: "  CUST-1001  ",</text>
 <text x="105" y="838" class="mono">  customer_city: "  sao paulo  ",</text>
@@ -87,7 +87,7 @@
 <rect x="660" y="620" width="560" height="10" rx="5" fill="url(#red)"/>
 <text x="693" y="670" class="section">04B / QUARANTINE S3</text>
 <text x="693" y="710" class="bad">1 record rejected by Lambda</text>
-<text x="693" y="750" class="small">quarantine/&lt;timestamp&gt;/customers_5_fields.json.json</text>
+<text x="693" y="750" class="small">quarantine/&lt;timestamp&gt;/customers_5_fields_e2e.json</text>
 <rect x="690" y="775" width="500" height="125" rx="12" class="inner"/>
 <text x="710" y="810" class="mono">record_index: 1</text>
 <text x="710" y="838" class="mono">record.customer_city: ""</text>
@@ -97,15 +97,15 @@
 
 <rect x="1265" y="620" width="565" height="310" rx="20" class="panel"/>
 <rect x="1265" y="620" width="565" height="10" rx="5" fill="url(#blue)"/>
-<text x="1298" y="670" class="section">04C / VALIDATION SUMMARY</text>
-<text x="1298" y="710" class="h">CloudWatch log summary</text>
+<text x="1298" y="670" class="section">04C / VALIDATION REPORT</text>
+<text x="1298" y="710" class="h">S3 report + CloudWatch</text>
 <rect x="1295" y="745" width="505" height="155" rx="12" class="inner"/>
 <text x="1320" y="782" class="mono">{</text>
 <text x="1345" y="810" class="mono">"total_records": 2,</text>
 <text x="1345" y="838" class="mono">"valid_records": 1,</text>
 <text x="1345" y="866" class="mono">"invalid_records": 1</text>
 <text x="1320" y="892" class="mono">}</text>
-<text x="1298" y="918" class="muted">Summary is printed to CloudWatch; not a separate S3 report.</text>
+<text x="1298" y="918" class="muted">S3 JSON: ingestion-reports/&lt;timestamp&gt;/*.report.json</text>
 
 <!-- Glue path -->
 <text x="65" y="990" class="section">05 / GLUE READS THE VALIDATED BRANCH ONLY</text>
@@ -150,5 +150,5 @@
 <text x="65" y="1290" class="small">The invalid city record never reaches curated data.</text>
 <text x="65" y="1320" class="small">Illustrative result from the sample fixture;</text>
 <text x="65" y="1350" class="small">actual AWS query output must be captured after job run.</text>
-<text x="65" y="1410" class="muted">Note: the existing Lambda output path appends .json to the source filename, so a source ending in .json produces a .json.json output key.</text>
+<text x="65" y="1410" class="muted">The Lambda writes validated records as JSON Lines and saves a separate S3 validation report.</text>
 </svg>
