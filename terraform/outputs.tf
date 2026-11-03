@@ -33,3 +33,8 @@ output "glue_etl_role_arn" {
 output "curated_bucket_name" {
   value = module.s3_buckets["curated"].bucket_name
 }
+
+output "reports_bucket_name" {
+  description = "S3 bucket storing ingestion validation and schema evolution reports."
+  value       = module.s3_buckets["reports"].bucket_name
+}
