@@ -1,27 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
-<title id="title">Athena SQL result grid preview</title>
-<desc id="desc">Illustrative Athena result grid layout for a customer-state count query. It contains no fabricated data rows; run the SQL to populate real results.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="850" viewBox="0 0 1500 850" role="img" aria-labelledby="title desc">
+<title id="title">Expected Athena results for the five-field customer example</title>
+<desc id="desc">Illustrative SQL result grids showing one curated Sao Paulo customer and one Lambda ingestion report with two total, one valid and one invalid record. These are expected synthetic fixture values, not live AWS query output.</desc>
 <defs>
  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101b31"/><stop offset="1" stop-color="#1b3554"/></linearGradient>
  <style>
- .h{font:700 27px Arial;fill:#fff}.sub{font:14px Arial;fill:#b7cbe3}.panel{fill:#f8fafc}.dark{fill:#17243a}.mono{font:14px Consolas,monospace;fill:#d9e7f7}.head{font:700 15px Arial;fill:#25364e}.muted{font:14px Arial;fill:#66758a}.warn{font:700 14px Arial;fill:#7c5011}
+ .h{font:700 31px Arial;fill:#fff}.sub{font:15px Arial;fill:#b7cbe3}.panel{fill:#f8fafc}.headbg{fill:#e8eef5}.dark{fill:#17243a}.mono{font:14px Consolas,monospace;fill:#d9e7f7}.head{font:700 15px Arial;fill:#25364e}.cell{font:15px Arial;fill:#34465f}.muted{font:14px Arial;fill:#66758a}.pill{font:700 14px Arial;fill:#815311}.foot{font:13px Arial;fill:#b7cbe3}
  </style>
 </defs>
-<rect width="1200" height="600" rx="24" fill="url(#bg)"/>
-<text x="55" y="62" class="h">Amazon Athena · query result layout</text>
-<text x="55" y="92" class="sub">Illustrative preview of the SQL example in athena/customer_analytics.sql</text>
-<rect x="55" y="125" width="1090" height="190" rx="14" class="dark"/>
-<text x="85" y="165" class="mono">SELECT customer_state, COUNT(*) AS customer_count</text>
-<text x="85" y="198" class="mono">FROM dq_platform_analytics.customer_curated</text>
-<text x="85" y="231" class="mono">GROUP BY customer_state</text>
-<text x="85" y="264" class="mono">ORDER BY customer_count DESC LIMIT 20;</text>
-<rect x="55" y="345" width="1090" height="195" rx="14" class="panel"/>
-<rect x="55" y="345" width="1090" height="47" rx="14" fill="#e8eef5"/>
-<text x="90" y="375" class="head">customer_state</text>
-<text x="580" y="375" class="head">customer_count</text>
-<path d="M55 392 H1145" stroke="#d9e1ea"/>
-<text x="600" y="445" text-anchor="middle" class="muted">No live result rows embedded yet</text>
-<text x="600" y="475" text-anchor="middle" class="muted">Run the Athena query after the Glue job writes curated Parquet.</text>
-<rect x="395" y="505" width="410" height="26" rx="13" fill="#ffedc6"/>
-<text x="600" y="523" text-anchor="middle" class="warn">Preview only · not a captured AWS query result</text>
+<rect width="1500" height="850" rx="26" fill="url(#bg)"/>
+<text x="55" y="65" class="h">Amazon Athena · expected query outputs</text>
+<text x="55" y="98" class="sub">Synthetic five-field demo fixture • output is illustrative until the Glue job and Athena SQL are executed in AWS</text>
+
+<rect x="55" y="135" width="1390" height="300" rx="17" class="panel"/>
+<text x="85" y="177" class="head">Query 1 · Customer lookup after Glue trim</text>
+<rect x="75" y="200" width="1350" height="54" rx="7" class="headbg"/>
+<text x="95" y="234" class="head">customer_id</text>
+<text x="330" y="234" class="head">customer_unique_id</text>
+<text x="625" y="234" class="head">customer_zip_code_prefix</text>
+<text x="950" y="234" class="head">customer_city</text>
+<text x="1210" y="234" class="head">customer_state</text>
+<path d="M75 254 H1425" stroke="#d4dde7"/>
+<text x="95" y="300" class="cell">CUST-1001</text>
+<text x="330" y="300" class="cell">UNQ-9001</text>
+<text x="625" y="300" class="cell">01001</text>
+<text x="950" y="300" class="cell">sao paulo</text>
+<text x="1210" y="300" class="cell">SP</text>
+<path d="M75 320 H1425" stroke="#e3e9ef"/>
+<text x="95" y="360" class="muted">1 row returned for customer_id = 'CUST-1001'</text>
+<rect x="1080" y="337" width="310" height="42" rx="21" fill="#dff5e8"/>
+<text x="1235" y="364" text-anchor="middle" style="font:700 14px Arial;fill:#216b47">Curated record · Parquet</text>
+
+<rect x="55" y="465" width="1390" height="250" rx="17" class="panel"/>
+<text x="85" y="507" class="head">Query 2 · Lambda ingestion validation report</text>
+<rect x="75" y="530" width="1350" height="54" rx="7" class="headbg"/>
+<text x="100" y="564" class="head">total_records</text>
+<text x="455" y="564" class="head">valid_records</text>
+<text x="810" y="564" class="head">invalid_records</text>
+<text x="1165" y="564" class="head">source file</text>
+<path d="M75 584 H1425" stroke="#d4dde7"/>
+<text x="100" y="635" class="cell">2</text>
+<text x="455" y="635" class="cell">1</text>
+<text x="810" y="635" class="cell">1</text>
+<text x="1165" y="635" class="cell">customers_5_fields_e2e.json</text>
+
+<rect x="55" y="750" width="1390" height="55" rx="12" fill="#3b3a36" stroke="#b9914a"/>
+<text x="750" y="784" text-anchor="middle" class="pill">Illustrative expected rows for the synthetic fixture — not a screenshot or live Athena execution.</text>
+<text x="55" y="832" class="foot">The invalid CUST-1002 record is quarantined by Lambda and does not appear in curated customer Parquet.</text>
 </svg>
