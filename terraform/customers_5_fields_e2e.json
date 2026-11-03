@@ -1,0 +1,16 @@
+[
+  {
+    "customer_id": "  CUST-1001  ",
+    "customer_unique_id": "UNQ-9001",
+    "customer_zip_code_prefix": "01001",
+    "customer_city": "  sao paulo  ",
+    "customer_state": " sp "
+  },
+  {
+    "customer_id": "CUST-1002",
+    "customer_unique_id": "UNQ-9002",
+    "customer_zip_code_prefix": "20010",
+    "customer_city": "",
+    "customer_state": "rj"
+  }
+]
