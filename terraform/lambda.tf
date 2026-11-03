@@ -1,4 +1,3 @@
-
 data "archive_file" "lambda_package" {
   type        = "zip"
   source_file = "${path.module}/lambda/app.py"
@@ -30,21 +29,23 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
       {
         Sid    = "ReadRawS3Objects"
         Effect = "Allow"
-        Action = [
-          "s3:GetObject"
-        ]
+        Action = ["s3:GetObject"]
         Resource = "${module.s3_buckets["raw"].bucket_arn}/*"
       },
       {
-        Sid    = "WriteProcessedS3Objects"
+        Sid    = "WriteValidatedAndQuarantineObjects"
         Effect = "Allow"
-        Action = [
-          "s3:PutObject"
-        ]
+        Action = ["s3:PutObject"]
         Resource = [
           "${module.s3_buckets["validated"].bucket_arn}/*",
           "${module.s3_buckets["quarantine"].bucket_arn}/*"
         ]
+      },
+      {
+        Sid    = "WriteIngestionValidationReports"
+        Effect = "Allow"
+        Action = ["s3:PutObject"]
+        Resource = "${module.s3_buckets["reports"].bucket_arn}/ingestion-reports/*"
       },
       {
         Sid    = "ConsumeIngestionQueue"
@@ -88,6 +89,7 @@ resource "aws_lambda_function" "ingestion" {
     variables = {
       VALIDATED_BUCKET  = module.s3_buckets["validated"].bucket_name
       QUARANTINE_BUCKET = module.s3_buckets["quarantine"].bucket_name
+      REPORTS_BUCKET    = module.s3_buckets["reports"].bucket_name
     }
   }
 
