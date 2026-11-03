@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="620" viewBox="0 0 1400 620" role="img" aria-labelledby="title desc">
+<title id="title">Direct S3 Glue ETL to Athena workflow</title><desc id="desc">Validated JSON input, Glue Spark transformations, Parquet output, explicit Athena table DDL and SQL analytics.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111d34"/><stop offset="1" stop-color="#1c3655"/></linearGradient>
+ <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#93e9bb"/><stop offset="1" stop-color="#36a878"/></linearGradient>
+ <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c1a8ff"/><stop offset="1" stop-color="#805bd2"/></linearGradient>
+ <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#91dbff"/><stop offset="1" stop-color="#368ec5"/></linearGradient>
+ <marker id="arr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0 0 L0 6 L8 3 z" fill="#9fb5d1"/></marker>
+ <style>
+ .h{font:700 30px Arial;fill:#fff}.sub{font:15px Arial;fill:#b8cbe3}.t{font:700 18px Arial;fill:#fff}.s{font:13px Arial;fill:#d1deee}.k{font:700 13px Arial;fill:#15243b}.arrow{stroke:#9fb5d1;stroke-width:2.5;fill:none;marker-end:url(#arr)}.step{fill:#243d5e;stroke:#58789c;stroke-width:1.5}
+ </style>
+</defs>
+<rect width="1400" height="620" rx="26" fill="url(#bg)"/>
+<text x="60" y="65" class="h">From validated JSON to query-ready Parquet</text>
+<text x="60" y="95" class="sub">Crawler-independent pattern • Glue reads direct S3 paths • Athena table defined with SQL</text>
+
+<g>
+ <rect x="55" y="150" width="245" height="190" rx="17" class="step"/><rect x="55" y="150" width="245" height="9" rx="4" fill="url(#g)"/>
+ <text x="177" y="195" text-anchor="middle" class="t">01 · Validated S3</text>
+ <text x="177" y="235" text-anchor="middle" class="s">processed/*.json</text>
+ <text x="177" y="264" text-anchor="middle" class="s">Required fields present</text>
+ <text x="177" y="293" text-anchor="middle" class="s">JSON array / object records</text>
+
+ <rect x="365" y="150" width="300" height="190" rx="17" class="step"/><rect x="365" y="150" width="300" height="9" rx="4" fill="url(#p)"/>
+ <text x="515" y="195" text-anchor="middle" class="t">02 · AWS Glue Spark</text>
+ <text x="515" y="235" text-anchor="middle" class="s">Read JSON directly from S3</text>
+ <text x="515" y="264" text-anchor="middle" class="s">Trim ID and city fields</text>
+ <text x="515" y="293" text-anchor="middle" class="s">Uppercase state • count rejects</text>
+
+ <rect x="730" y="150" width="245" height="190" rx="17" class="step"/><rect x="730" y="150" width="245" height="9" rx="4" fill="url(#g)"/>
+ <text x="852" y="195" text-anchor="middle" class="t">03 · Curated S3</text>
+ <text x="852" y="235" text-anchor="middle" class="s">customer/</text>
+ <text x="852" y="264" text-anchor="middle" class="s">Parquet format</text>
+ <text x="852" y="293" text-anchor="middle" class="s">processing_date=YYYY-MM-DD</text>
+
+ <rect x="1040" y="150" width="305" height="190" rx="17" class="step"/><rect x="1040" y="150" width="305" height="9" rx="4" fill="url(#b)"/>
+ <text x="1192" y="195" text-anchor="middle" class="t">04 · Amazon Athena</text>
+ <text x="1192" y="235" text-anchor="middle" class="s">Explicit external table DDL</text>
+ <text x="1192" y="264" text-anchor="middle" class="s">Partition projection</text>
+ <text x="1192" y="293" text-anchor="middle" class="s">SQL profile and quality checks</text>
+ <path d="M300 245 H355" class="arrow"/><path d="M665 245 H720" class="arrow"/><path d="M975 245 H1030" class="arrow"/>
+</g>
+
+<rect x="55" y="390" width="610" height="165" rx="17" fill="#1c304e" stroke="#4d7195"/>
+<text x="85" y="430" class="t">Transformation contract</text>
+<text x="85" y="465" class="s">customer_id = TRIM(CAST(customer_id AS STRING))</text>
+<text x="85" y="493" class="s">customer_city = TRIM(CAST(customer_city AS STRING))</text>
+<text x="85" y="521" class="s">customer_state = UPPER(TRIM(CAST(customer_state AS STRING)))</text>
+
+<rect x="705" y="390" width="640" height="165" rx="17" fill="#1c304e" stroke="#4d7195"/>
+<text x="735" y="430" class="t">Example Athena analytics</text>
+<text x="735" y="465" class="s">SELECT customer_state, COUNT(*) AS customer_count</text>
+<text x="735" y="493" class="s">FROM dq_platform_analytics.customer_curated</text>
+<text x="735" y="521" class="s">GROUP BY customer_state ORDER BY customer_count DESC;</text>
+<text x="60" y="590" class="sub">Runtime output is environment-specific; capture actual Glue JobRunState and Athena result grid after execution.</text>
+</svg>
