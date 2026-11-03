@@ -14,8 +14,12 @@ The repository contains source CSV files from this dataset. The customer pipelin
 | Olist source column | Pipeline field |
 |---|---|
 | `customer_id` | `customer_id` |
+| `customer_unique_id` | `customer_unique_id` |
+| `customer_zip_code_prefix` | `customer_zip_code_prefix` (preserved as a string to keep leading zeroes) |
 | `customer_city` | `customer_city` |
 | `customer_state` | `customer_state` |
+
+The Lambda ingestion contract currently requires `customer_id`, `customer_city`, and `customer_state`. The unique customer ID and ZIP prefix are retained as additional customer attributes when present. The committed two-record five-field JSON fixture is synthetic test data, not an actual Kaggle row.
 
 ## Download
 
