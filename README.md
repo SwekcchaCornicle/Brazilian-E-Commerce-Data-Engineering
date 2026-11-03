@@ -100,8 +100,12 @@ The customer data fields used in the customer-focused validation flow are:
 | Olist CSV column | Pipeline field |
 |---|---|
 | `customer_id` | `customer_id` |
+| `customer_unique_id` | `customer_unique_id` |
+| `customer_zip_code_prefix` | `customer_zip_code_prefix` (kept as string to preserve leading zeroes) |
 | `customer_city` | `customer_city` |
 | `customer_state` | `customer_state` |
+
+Lambda currently requires `customer_id`, `customer_city`, and `customer_state`; `customer_unique_id` and `customer_zip_code_prefix` are preserved optional attributes in this example.
 
 The small files under `terraform/valid_customer.json`, `terraform/invalid_customer.json`, and `datasets/test_data/` are test fixtures. They should not be described as the complete Kaggle dataset.
 
@@ -174,6 +178,205 @@ aws logs describe-log-streams --log-group-name /aws/lambda/dq-platform-ingestion
 
 **Observed during development:** valid JSON uploads were processed by the S3 → EventBridge → SQS → Lambda flow, and objects appeared in the validated bucket. The invalid fixture was uploaded, but its quarantine listing was not independently confirmed in the reported session; use the command above to verify it in your own account.
 
+## 🧩 One complete example: five fields from Raw S3 to Athena
+
+The following small fixture is designed to make the complete pipeline easy to reproduce and understand. It contains **two synthetic records** using the five customer columns from Olist's customer dataset. It is not copied from a real Kaggle customer row.
+
+The file is committed at [`terraform/customers_5_fields_e2e.json`](terraform/customers_5_fields_e2e.json).
+
+### Input: Raw JSON
+
+```json
+[
+  {
+    "customer_id": "  CUST-1001  ",
+    "customer_unique_id": "UNQ-9001",
+    "customer_zip_code_prefix": "01001",
+    "customer_city": "  sao paulo  ",
+    "customer_state": " sp "
+  },
+  {
+    "customer_id": "CUST-1002",
+    "customer_unique_id": "UNQ-9002",
+    "customer_zip_code_prefix": "20010",
+    "customer_city": "",
+    "customer_state": "rj"
+  }
+]
+```
+
+### Lambda: validate and split the records
+
+The raw object is sent through S3 → EventBridge → SQS → Lambda.
+
+The current ingestion contract treats these three attributes as required:
+
+- `customer_id`
+- `customer_city`
+- `customer_state`
+
+The other two Olist attributes, `customer_unique_id` and `customer_zip_code_prefix`, are retained and passed downstream. ZIP prefix is handled as a string to preserve leading zeroes.
+
+For this fixture, the expected validation decision is:
+
+| Record | Result | Reason |
+|---|---|---|
+| `CUST-1001` | ✅ Validated | All required fields are present and non-blank |
+| `CUST-1002` | ❌ Quarantined | `customer_city` is blank |
+
+**Validated S3 output** (one JSON object per line):
+
+```json
+{"customer_id":"  CUST-1001  ","customer_unique_id":"UNQ-9001","customer_zip_code_prefix":"01001","customer_city":"  sao paulo  ","customer_state":" sp "}
+```
+
+**Quarantine S3 output** (record plus error detail):
+
+```json
+{"record_index":1,"record":{"customer_id":"CUST-1002","customer_unique_id":"UNQ-9002","customer_zip_code_prefix":"20010","customer_city":"","customer_state":"rj"},"errors":["Empty required field: customer_city"]}
+```
+
+**Persistent ingestion validation report** is saved separately in the reports bucket:
+
+```text
+s3://<REPORTS_BUCKET>/ingestion-reports/<timestamp>/customers_5_fields_e2e.json.report.json
+```
+
+Example report summary (runtime timestamp and bucket names will differ):
+
+```json
+{
+  "total_records": 2,
+  "valid_records": 1,
+  "invalid_records": 1,
+  "validated_output": "s3://<VALIDATED_BUCKET>/processed/<timestamp>/customers_5_fields_e2e.json",
+  "quarantine_output": "s3://<QUARANTINE_BUCKET>/quarantine/<timestamp>/customers_5_fields_e2e.json",
+  "validation_errors": [
+    {
+      "record_index": 1,
+      "errors": ["Empty required field: customer_city"]
+    }
+  ]
+}
+```
+
+The full report also includes `created_at` and `source`. Lambda writes the report JSON to S3 and prints the per-object summary to CloudWatch Logs.
+
+### Glue: read the same validated data and transform it
+
+Glue reads only the validated prefix:
+
+```text
+s3://<VALIDATED_BUCKET>/processed/
+```
+
+It does not read the raw prefix or quarantine prefix. The updated Lambda writes JSON Lines (NDJSON); Glue's Spark reader consumes that format using the default JSON Lines mode.
+
+| Field | Before Glue | After Glue |
+|---|---|---|
+| `customer_id` | `"  CUST-1001  "` | `"CUST-1001"` |
+| `customer_unique_id` | `"UNQ-9001"` | `"UNQ-9001"` |
+| `customer_zip_code_prefix` | `"01001"` | `"01001"` |
+| `customer_city` | `"  sao paulo  "` | `"sao paulo"` |
+| `customer_state` | `" sp "` | `"SP"` |
+
+Glue adds `processed_at` and `processing_date`, then writes the one valid record as Parquet under:
+
+```text
+s3://<CURATED_BUCKET>/customer/processing_date=YYYY-MM-DD/
+```
+
+The quarantined CUST-1002 record is not present in curated Parquet.
+
+### Athena: what the SQL query returns
+
+The SQL in [`athena/customer_analytics.sql`](athena/customer_analytics.sql) defines a Parquet external table with the five customer columns and a partition projection. It also defines a JSON table over the ingestion reports prefix. Neither table requires a Glue Crawler.
+
+Example customer lookup:
+
+```sql
+SELECT
+    customer_id,
+    customer_unique_id,
+    customer_zip_code_prefix,
+    customer_city,
+    customer_state
+FROM dq_platform_analytics.customer_curated
+WHERE customer_id = 'CUST-1001';
+```
+
+Expected illustrative row for this fixture:
+
+| customer_id | customer_unique_id | customer_zip_code_prefix | customer_city | customer_state |
+|---|---|---|---|---|
+| CUST-1001 | UNQ-9001 | 01001 | sao paulo | SP |
+
+State aggregation:
+
+```sql
+SELECT customer_state, COUNT(*) AS customer_count
+FROM dq_platform_analytics.customer_curated
+GROUP BY customer_state
+ORDER BY customer_count DESC;
+```
+
+Expected illustrative output for this fixture alone:
+
+| customer_state | customer_count |
+|---|---:|
+| SP | 1 |
+
+Validation report aggregation:
+
+```sql
+SELECT
+    SUM(total_records) AS total_records,
+    SUM(valid_records) AS valid_records,
+    SUM(invalid_records) AS invalid_records
+FROM dq_platform_analytics.ingestion_validation_reports;
+```
+
+Expected illustrative counts for this one input file: **2 total, 1 valid, 1 invalid**. If the tables include data from other runs, query totals will naturally be higher.
+
+> These are deterministic expected results for the synthetic two-record fixture, not screenshots or live AWS query output. Execute the Glue job and Athena queries to capture actual job run IDs and query results. The diagram below shows the entire path.
+
+<p align="center"><img src="docs/images/etl-athena-workflow.svg" alt="Five-field Raw S3 to Lambda validation, quarantine, validation report, Glue ETL and Athena query pipeline" width="100%"/></p>
+
+### Deploy the updated implementation
+
+The Lambda now writes the validation report to S3, so its environment and IAM policy have changed. The Glue script also now standardizes all five fields. These GitHub code changes do not update an already-running AWS Lambda/Glue job by themselves.
+
+From the Terraform directory, review and apply the changes:
+
+```cmd
+terraform fmt
+terraform validate
+terraform plan -out=five-field-e2e.tfplan
+terraform show -no-color five-field-e2e.tfplan
+```
+
+Review the Lambda package hash, `REPORTS_BUCKET` environment variable, reports-prefix IAM permission, Glue script object, and Glue job. Then apply the reviewed plan:
+
+```cmd
+terraform apply five-field-e2e.tfplan
+```
+
+Upload the example:
+
+```cmd
+aws s3 cp customers_5_fields_e2e.json s3://<RAW_BUCKET>/e2e/customers_5_fields_e2e.json --profile admin --region us-west-2
+```
+
+Verify all three Lambda outputs:
+
+```cmd
+aws s3 ls s3://<VALIDATED_BUCKET>/processed/ --recursive --profile admin --region us-west-2
+aws s3 ls s3://<QUARANTINE_BUCKET>/quarantine/ --recursive --profile admin --region us-west-2
+aws s3 ls s3://<REPORTS_BUCKET>/ingestion-reports/ --recursive --profile admin --region us-west-2
+```
+
+For the remaining Glue and Athena execution commands, see [`docs/END_TO_END_TEST.md`](docs/END_TO_END_TEST.md).
+
 ## 🔁 Schema evolution
 
 The project stores customer schemas as versioned JSON files:
@@ -222,8 +425,9 @@ s3://<validated-bucket>/processed/
 It performs the following transformations:
 
 - Reads JSON with Spark.
-- Trims `customer_id` and `customer_city`.
+- Trims `customer_id`, `customer_unique_id`, `customer_zip_code_prefix`, and `customer_city`.
 - Trims and uppercases `customer_state`.
+- Preserves `customer_zip_code_prefix` as a string, including leading zeroes.
 - Checks required fields and counts rejected rows.
 - Adds `processed_at` and `processing_date`.
 - Writes valid rows as Parquet partitioned by `processing_date`.
@@ -356,15 +560,15 @@ The project has implementation, deployment, and runtime-validation milestones. A
 | Curated S3 zone | ✅ Terraform deployed | ✅ Bucket existence, versioning, and AES256 encryption verified |
 | EventBridge → SQS | ✅ Terraform deployed | ✅ Event-driven ingestion exercised |
 | Lambda valid-record ingestion | ✅ Implemented and deployed | ✅ Two one-record valid fixture runs observed in CloudWatch |
-| Invalid-record quarantine | ✅ Validation and quarantine code implemented | 🟡 Confirm quarantine object with S3 listing / CloudWatch evidence |
+| Invalid-record quarantine | ✅ Validation/quarantine code implemented; five-field example added | 🟡 Confirm quarantine object with S3 listing after redeploy |
 | Customer schema v1/v2/v3 | ✅ JSON files stored in S3 | ✅ Versions used in schema comparison |
 | Schema evolution report | ✅ Python service and S3 report writer | ✅ v2 → v3 report generated and its S3 object verified |
 | Advanced schema change classification | ✅ Implemented | ✅ v2 → v3 breaking changes and review-required changes observed |
 | Glue Data Catalog database and IAM role | ✅ Terraform deployed | ✅ Creation recorded in Terraform state |
 | Optional Glue Crawler | ✅ Terraform code added; disabled by default | ⛔ AWS returned account-level `CreateCrawler AccessDenied` |
-| Glue ETL script and job definition | ✅ Python script and Terraform configuration added; deployment reported | 🟡 Confirm job run reaches `SUCCEEDED` |
+| Glue ETL script and job definition | ✅ Updated for five-field JSON Lines input; deployment needs updated script upload | 🟡 Confirm job run reaches `SUCCEEDED` |
 | Curated Parquet output | ✅ Write logic implemented | 🟡 Confirm actual Parquet objects in S3 |
-| Athena DDL and analytics SQL | ✅ SQL examples committed | 🟡 Execute queries and capture actual result set |
+| Athena DDL and analytics SQL | ✅ Five-field curated table and ingestion-report table examples committed | 🟡 Execute queries and capture actual result set |
 | End-to-end test documentation | ✅ Runbook committed | 🟡 Complete each pending live verification item |
 
 ### What is validated today
@@ -403,10 +607,11 @@ The project has implementation, deployment, and runtime-validation milestones. A
 - [x] Add Athena DDL and example analytical SQL.
 - [x] Add architecture, ETL workflow, and validation SVG visuals.
 - [x] Document the Olist Kaggle dataset source and attribution.
-- [ ] Independently verify invalid-record quarantine output.
-- [ ] Run Glue ETL and capture successful job-run evidence.
+- [ ] Apply updated Lambda code/IAM so S3 validation reports and JSON Lines output are active.
+- [ ] Independently verify the five-field valid, quarantine, and report objects.
+- [ ] Run updated Glue ETL and capture successful job-run evidence.
 - [ ] Verify Parquet output in curated S3.
-- [ ] Execute Athena SQL and capture real query output.
+- [ ] Execute the customer lookup and validation-report Athena queries and capture real query output.
 - [ ] Enable optional crawler only if AWS account restriction is lifted.
 - [ ] Add idempotency, CI tests, monitoring, and operational alerting.
 
