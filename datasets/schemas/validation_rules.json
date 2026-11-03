@@ -1,0 +1,83 @@
+{
+  "customers": {
+    "primary_key": ["customer_id"],
+    "required_fields": [
+      "customer_id",
+      "customer_unique_id",
+      "customer_zip_code_prefix",
+      "customer_city",
+      "customer_state"
+    ],
+    "unique_fields": ["customer_id"],
+    "valid_values": {
+      "customer_state": [
+        "AC", "AL", "AP", "AM", "BA", "CE",
+        "DF", "ES", "GO", "MA", "MT", "MS",
+        "MG", "PA", "PB", "PR", "PE", "PI",
+        "RJ", "RN", "RS", "RO", "RR", "SC",
+        "SP", "SE", "TO"
+      ]
+    }
+  },
+  "orders": {
+    "primary_key": ["order_id"],
+    "required_fields": [
+      "order_id",
+      "customer_id",
+      "order_status",
+      "order_purchase_timestamp"
+    ],
+    "unique_fields": ["order_id"],
+    "valid_values": {
+      "order_status": [
+        "created", "approved", "invoiced",
+        "processing", "shipped", "delivered",
+        "canceled", "unavailable"
+      ]
+    }
+  },
+  "order_items": {
+    "primary_key": ["order_id", "order_item_id"],
+    "required_fields": [
+      "order_id",
+      "order_item_id",
+      "product_id",
+      "price",
+      "freight_value"
+    ],
+    "positive_fields": ["price", "freight_value"]
+  },
+  "products": {
+    "primary_key": ["product_id"],
+    "required_fields": ["product_id"],
+    "positive_fields": [
+      "product_weight_g",
+      "product_length_cm",
+      "product_height_cm",
+      "product_width_cm"
+    ]
+  },
+  "payments": {
+    "required_fields": [
+      "order_id",
+      "payment_sequential",
+      "payment_type",
+      "payment_value"
+    ],
+    "positive_fields": ["payment_value"]
+  },
+  "reviews": {
+    "required_fields": [
+      "review_id",
+      "order_id",
+      "review_score"
+    ],
+    "unique_fields": ["review_id"],
+    "valid_ranges": {
+      "review_score": {
+        "min": 1,
+        "max": 5
+      }
+    }
+  }
+}

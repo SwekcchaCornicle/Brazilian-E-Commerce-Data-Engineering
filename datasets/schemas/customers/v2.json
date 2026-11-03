@@ -1,0 +1,41 @@
+{
+  "dataset_name": "customers",
+  "schema_version": 2,
+  "fields": {
+    "customer_id": {
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "customer_unique_id": {
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "customer_zip_code_prefix": {
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "customer_city": {
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "customer_state": {
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "customer_segment": {
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "registration_source": {
+      "type": "string",
+      "required": false,
+      "nullable": true
+    }
+  }
+}

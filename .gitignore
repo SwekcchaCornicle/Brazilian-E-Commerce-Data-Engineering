@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+terraform.tfvars
+.terraform.lock.hcl
+
+# AWS credentials
+.aws/
+.env
+
+# Generated data and reports
+datasets/raw/
+reports/

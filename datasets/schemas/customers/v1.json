@@ -1,0 +1,26 @@
+{
+  "dataset_name": "customers",
+  "schema_version": 1,
+  "fields": {
+    "customer_id": {
+      "type": "string",
+      "required": true
+    },
+    "customer_unique_id": {
+      "type": "string",
+      "required": true
+    },
+    "customer_zip_code_prefix": {
+      "type": "string",
+      "required": true
+    },
+    "customer_city": {
+      "type": "string",
+      "required": true
+    },
+    "customer_state": {
+      "type": "string",
+      "required": true
+    }
+  }
+}
